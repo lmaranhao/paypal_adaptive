@@ -1,3 +1,60 @@
+#about this fork
+As I needed to use paypal's adaptive accounts createAccount service I've chosen to customize this component for it.
+
+## HOWTO use this feature
+1 - On both development and test sections of your paypal_adaptive.yml add this line
+
+    sandbox_email: "foozoo_1343321764_biz@gmail.com"
+  
+2- sample code to create an account in sandbox
+
+    def criar_conta
+        pay_request = PaypalAdaptive::Request.new
+        specific_headers = {
+          "X-PAYPAL-DEVICE-IPADDRESS" => request.remote_ip
+        }
+    
+        data = {
+          "accountType" => "PERSONAL",
+           "name" =>  {                  
+            "firstName" => "Lenny",
+            "lastName" => "Riceman"
+          },
+          "address" => {               
+            "line1" => "123 Main St",
+            "city" => "Austin",
+            "state" => "TX",
+            "postalCode" => "78759",
+            "countryCode" => "US"
+          },
+          "citizenshipCountryCode" => "US",
+          "contactPhoneNumber" => "512-555-5555",
+          "dateOfBirth" => "1968-01-01Z",
+    
+          "createAccountWebOptions" => {
+            "returnUrl"=>"http://localhost:3000/bla/6evd2gpz"
+          },
+          "currencyCode" => "USD",
+          "emailAddress" => "blafooxxxa@zmailmezmail.com",
+          "preferredLanguageCode" => "en_US",
+          "registrationType" => "Web",
+          "requestEnvelope" =>  {
+            "errorLanguage" => "en_US"
+          },
+    
+          "sandboxEmailAddress" => "foozoo_1343321764_biz@gmail.com"
+        }
+    
+        pay_response = pay_request.create_account(data, specific_headers)
+    
+        if pay_response.success?
+            redirect_to pay_response["redirectURL"] + '&createAccountKey=' + pay_response["createAccountKey"]
+          else
+            logger.debug pay_response
+            render '/bla/foo'
+        end
+    end
+
 # paypal_adaptive
 This gem is a lightweight wrapper for the paypal adaptive payments API.
 
