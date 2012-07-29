@@ -25,6 +25,10 @@ module PaypalAdaptive
       #JSON::Schema.validate(@data, @schema)
     end
 
+    def create_account(data, specific_headers)
+      wrap_post_specific_headers(data, "/AdaptiveAccounts/CreateAccount", specific_headers)
+    end
+
     def pay(data)
       wrap_post(data, "/AdaptivePayments/Pay")
     end
@@ -74,16 +78,21 @@ module PaypalAdaptive
     end
 
     def wrap_post(data, path)
+      specific_headers = {}
+      wrap_post_specific_headers(data, path, specific_headers)
+    end
+
+    def wrap_post_specific_headers(data, path, specific_headers)
       raise NoDataError unless data
 
-      PaypalAdaptive::Response.new(post(data, path), @env)
+      PaypalAdaptive::Response.new(post(data, path, specific_headers), @env)
     end
 
     def rescue_error_message(e, message = nil)
       {"responseEnvelope" => {"ack" => "Failure"}, "error" => [{"message" => (message ||= e)}]}
     end
 
-    def post(data, path)
+    def post(data, path, specific_headers)
       #hack fix: JSON.unparse doesn't work in Rails 2.3.5; only {}.to_json does..
       api_request_data = JSON.unparse(data) rescue data.to_json
       url = URI.parse @api_base_url
@@ -99,8 +108,10 @@ module PaypalAdaptive
       end
       http.ca_path = @ssl_cert_path unless @ssl_cert_path.nil?
 
+      request_headers = @headers.merge(specific_headers)
+
       begin
-        response_data = http.post(path, api_request_data, @headers)
+        response_data = http.post(path, api_request_data, request_headers)
         return JSON.parse(response_data.body)
       rescue Net::HTTPBadGateway => e
         rescue_error_message(e, "Error reading from remote server.")

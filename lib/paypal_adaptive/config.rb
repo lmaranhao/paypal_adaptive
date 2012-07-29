@@ -42,6 +42,7 @@ module PaypalAdaptive
           "X-PAYPAL-RESPONSE-DATA-FORMAT" => "JSON"
         }
         @headers.merge!({"X-PAYPAL-SECURITY-SIGNATURE" => config['signature']}) if config['signature']
+        @headers.merge!({"X-PAYPAL-SANDBOX-EMAIL-ADDRESS" => config['sandbox_email']}) if config['sandbox_email']
 
         @ssl_cert_file = config['ssl_cert_file'] unless config['ssl_cert_file'].blank?
       end
